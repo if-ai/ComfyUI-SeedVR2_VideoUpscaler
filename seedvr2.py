@@ -13,6 +13,7 @@
 # // limitations under the License.
 
 import os
+import sys
 import torch
 import mediapy
 from einops import rearrange
@@ -62,6 +63,11 @@ import os
 
 
 def configure_runner(model):
+    # Add the script's directory to Python's path
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+
     from .common.config import load_config, create_object
     from omegaconf import DictConfig, OmegaConf
     import importlib
@@ -636,7 +642,6 @@ def generation_loop(runner, images, cfg_scale=1.0, seed=666, res_w=720, batch_si
             Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
             DivisibleCrop((16, 16)),
             Normalize(0.5, 0.5),
-            Rearrange("t c h w -> c t h w"),
         ]
     )
 
@@ -667,6 +672,7 @@ def generation_loop(runner, images, cfg_scale=1.0, seed=666, res_w=720, batch_si
             
             # OPTIMISATION: Transformations vidéo avec gestion mémoire améliorée
             transformed_video = video_transform(video)
+            transformed_video = rearrange(transformed_video, "t c h w -> c t h w")
             ori_lengths = [transformed_video.size(1)]
             
             # GESTION CORRECTE: Respecter la contrainte frames % 4 == 1
