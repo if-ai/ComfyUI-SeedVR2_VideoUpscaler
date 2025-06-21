@@ -13,6 +13,7 @@
 # // limitations under the License.
 
 import os
+import sys
 import torch
 import mediapy
 from einops import rearrange
@@ -62,6 +63,11 @@ import os
 
 
 def configure_runner(model):
+    # Add the script's directory to Python's path
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+
     from .common.config import load_config, create_object
     from omegaconf import DictConfig, OmegaConf
     import importlib
